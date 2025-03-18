@@ -35,23 +35,19 @@ black = Pixel 0 0 0
 
 -- A function to scale a pixel by a given number
 pixelScale :: Double -> Pixel -> Pixel
-pixelScale s (r g b) = (s * r s * g s * b)
+pixelScale s (Pixel r g b) = Pixel (s * r) (s * g) (s * b)
 
 -- Add 2 pixels together componentwise
 pixelAdd :: Pixel -> Pixel -> Pixel
-pixelAdd (r1 g1 b1) (r2 g2 b2) = (r1 + r2 g1 + g2 b1 + b2)
+pixelAdd (Pixel r1 g1 b1) (Pixel r2 g2 b2) = Pixel (r1 + r2) (g1 + g2) (b1 + b2)
 
 -- get the red component of a pixel
 red :: Pixel -> Double
-red (r _ _) = r
+red (Pixel r _ _) = r
 
 -- get the green component of a pixel
 green :: Pixel -> Double
-green (_ g _) = g
-
--- get the blue component of a pixel
-blue :: Pixel -> Double
-blue (_ _ b) = b
+green (Pixel _ g _) = g
 
 -- A function that takes a pixel transformation
 -- and applies it to all of the pixels in the image
@@ -79,23 +75,23 @@ width (x:_) = length x
 -- N rows
 -- M columns
 blackBox :: Int -> Int -> [[Pixel]]
-blackBox n m = replicate n (replicate m (0 0 0)) -- (R G B) values
+blackBox n m = replicate n (replicate m black) -- (R G B) values
 
 -- adds n rows of black pixels to the top of the image
 padTop :: Int -> Picture -> Picture
-padTop n img = replicate n (replicate (width img) (0 0 0)) ++ img
+padTop n img = replicate n (replicate (width img) black) ++ img
 
 -- adds n rows of black pixels to the bottom of the image
 padBottom :: Int -> Picture -> Picture
-padBottom n img = img ++ replicate n (replicate (width img) (0 0 0))
+padBottom n img = img ++ replicate n (replicate (width img) black)
 
 -- adds n rows of black pixels to the left of the image
 padLeft :: Int -> Picture -> Picture
-padLeft n img = map (\row -> replicate n (0 0 0) ++ row) img
+padLeft n img = map (\row -> replicate n black ++ row) img
 
 -- adds n rows of black pixels to the right of the image
 padRight :: Int -> Picture -> Picture
-padRight n img = map (\row -> row ++ replicate n (0 0 0)) img
+padRight n img = map (\row -> row ++ replicate n black) img
 
 -- pad an immage to the left and the right with n columns of black pixels.
 padH :: Int -> Picture -> Picture
@@ -109,14 +105,14 @@ padV n img = padTop n (padBottom n img)
 cellShade :: Picture -> Picture
 cellShade = map (map quantize)
   where
-    quantize (r g b) = (step r step g step b)
-    step x = (x `div` 64) * 64 
+    quantize (Pixel r g b) = Pixel (step r) (step g) (step b)
+    step x = fromIntegral (floor (x * 4) `div` 4)
 
 -- converts an image to gray scale.
 grayScale :: Picture -> Picture
 grayScale = map (map toGray)
   where
-    toGray (r g b) = let gray = (r + g + b) `div` 3 in (gray gray gray)
+    toGray (Pixel r g b) = let gray = (r + g + b) / 3 in Pixel gray gray gray
 
 
 --------------------------------------------------------------------------
