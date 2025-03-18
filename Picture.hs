@@ -1,6 +1,6 @@
 module Picture where
 
-import Data.List (transposetails)
+import Data.List (transpose,tails)
 
 -- Data Structures for representing an Picture
 -- A Pixel is just a triple of doubles between 0 and 1
@@ -31,15 +31,17 @@ black = Pixel 0 0 0
 -- Part 1: useful functions
 --
 -----------------------------------------------------------------------------
--- Assuming Pixel is a triplet of Double values (R G B)
 
 -- A function to scale a pixel by a given number
 pixelScale :: Double -> Pixel -> Pixel
-pixelScale s (Pixel r g b) = Pixel (s * r) (s * g) (s * b)
+pixelScale factor (Pixel r g b) = Pixel (factor * r) (factor * g) (factor * b)
 
 -- Add 2 pixels together componentwise
 pixelAdd :: Pixel -> Pixel -> Pixel
-pixelAdd (Pixel r1 g1 b1) (Pixel r2 g2 b2) = Pixel (r1 + r2) (g1 + g2) (b1 + b2)
+pixelAdd (Pixel r1 g1 b1) (Pixel r2 g2 b2) = Pixel r g b
+    where r = r1 + r2
+          g = g1 + g2
+          b = b1 + b2
 
 -- get the red component of a pixel
 red :: Pixel -> Double
@@ -49,17 +51,27 @@ red (Pixel r _ _) = r
 green :: Pixel -> Double
 green (Pixel _ g _) = g
 
+-- get the blue component of a pixel
+blue :: Pixel -> Double
+blue (Pixel _ _ b) = b
+
 -- A function that takes a pixel transformation
 -- and applies it to all of the pixels in the image
+
+-- THIS ONE
 picMap :: (a -> a) -> [[a]] -> [[a]]
-picMap f = map (map f)
+picMap = fmap * fmap
+
 
 -- group a list into groups of size n.
 -- example group 2 [123456]
 -- [[12][34][56]
 group :: Int -> [a] -> [[a]]
-group _ [] = []
-group n xs = take n xs : group n (drop n xs)
+group :: Int -> [a] -> [[a]]
+group n = unfoldr split
+  where
+    split [] = Nothing
+    split xs = Just (take n xs, drop n xs)
 
 -- returns the height of an image
 height :: [[a]] -> Int
@@ -103,16 +115,19 @@ padV n img = padTop n (padBottom n img)
 
 -- cell shades an image
 cellShade :: Picture -> Picture
-cellShade = map (map quantize)
+cellShade = picMap shadePixel
   where
-    quantize (Pixel r g b) = Pixel (step r) (step g) (step b)
-    step x = fromIntegral (floor (x * 4) `div` 4)
+    shadePixel = pixelMap shade
+    shade x = bool 0 1 (x > 0.5)
 
 -- converts an image to gray scale.
 grayScale :: Picture -> Picture
-grayScale = map (map toGray)
+grayScale :: Picture -> Picture
+grayScale = picMap grayPixel
   where
-    toGray (Pixel r g b) = let gray = (r + g + b) / 3 in Pixel gray gray gray
+    grayPixel pixel = let avg = pixelAvg pixel in Pixel avg avg avg
+    pixelAvg (Pixel r g b) = (r + g + b) / 3
+
 
 
 --------------------------------------------------------------------------
