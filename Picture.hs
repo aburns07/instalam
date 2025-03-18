@@ -90,26 +90,26 @@ padTop :: Int -> Picture -> Picture
 padTop n image = blackRows ++ image
     where
         blackRows = replicate n (replicate (width image) blackPixel)
-        blackPixel = Pixel 0 0 0
+        blackPixel = black
 
 -- adds n rows of black pixels to the bottom of the image
 padBottom :: Int -> Picture -> Picture
 padBottom n image = image ++ blackRows
     where
         blackRows = replicate n (replicate (width image) blackPixel)
-        blackPixel = Pixel 0 0 0
+        blackPixel = black
 
 -- adds n rows of black pixels to the left of the image
 padLeft :: Int -> Picture -> Picture
 padLeft n = map (replicate n blackPixel ++)
     where
-        blackPixel = Pixel 0 0 0
+        blackPixel = black
 
 -- adds n rows of black pixels to the right of the image
 padRight :: Int -> Picture -> Picture
 padRight n = map (++ replicate n blackPixel)
     where
-        blackPixel = Pixel 0 0 0
+        blackPixel = black
 
 -- pad an immage to the left and the right with n columns of black pixels.
 padH :: Int -> Picture -> Picture
