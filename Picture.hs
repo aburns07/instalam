@@ -272,19 +272,19 @@ convolveImage = undefined
 -- image by a factor of 4.
 edge :: Picture -> Picture
 edge = picMap (pixelScale 4) . convolveImage kernal . grayScale
- where kernal = [[ 0-1 0]
-                 [-1 4-1]
-                 [ 0-1 0]]
+ where kernal = [[ 0,-1, 0],
+                 [-1, 4,-1],
+                 [ 0,-1, 0]]
 
 -- blur the image using a flat blurring.
--- This tends to blur a little more but it doesn't look as good as gausing bluring.
+-- This tends to blur a little more, but it doesn't look as good as gausing bluring.
 blur :: Picture -> Picture
 blur = convolveImage kernal
- where kernal = [[1/251/251/251/251/25] 
-                 [1/251/251/251/251/25] 
-                 [1/251/251/251/251/25] 
-                 [1/251/251/251/251/25] 
-                 [1/251/251/251/251/25]]
+ where kernal = [[1/25,1/25,1/25,1/25,1/25], 
+                 [1/25,1/25,1/25,1/25,1/25], 
+                 [1/25,1/25,1/25,1/25,1/25], 
+                 [1/25,1/25,1/25,1/25,1/25], 
+                 [1/25,1/25,1/25,1/25,1/25]]
 
 -- gaussian bluring
 -- blur each pixel with a weighted average of all the pixels around it.
@@ -292,9 +292,9 @@ blur = convolveImage kernal
 -- (technically a binomial distribution since pictures are discrete)
 gaussian :: Picture -> Picture
 gaussian = convolveImage kernal
- where kernal = [[1/273 4/273 7/273 4/2731/273] 
-                 [4/27316/27327/27316/2734/273] 
-                 [7/27326/27341/27326/2737/273] 
-                 [4/27316/27327/27316/2734/273] 
-                 [1/273 4/273 7/273 4/2731/273]]
+ where kernal = [[1/273, 4/273, 7/273, 4/273,1/273], 
+                 [4/273,16/273,27/273,16/273,4/273], 
+                 [7/273,26/273,41/273,26/273,7/273], 
+                 [4/273,16/273,27/273,16/273,4/273], 
+                 [1/273, 4/273, 7/273, 4/273,1/273]]
 
