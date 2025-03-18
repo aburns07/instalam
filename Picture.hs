@@ -38,10 +38,7 @@ pixelScale factor (Pixel r g b) = Pixel (factor * r) (factor * g) (factor * b)
 
 -- Add 2 pixels together componentwise
 pixelAdd :: Pixel -> Pixel -> Pixel
-pixelAdd (Pixel r1 g1 b1) (Pixel r2 g2 b2) = Pixel r g b
-    where r = r1 + r2
-          g = g1 + g2
-          b = b1 + b2
+pixelAdd (Pixel r1 g1 b1) (Pixel r2 g2 b2) = Pixel (r1 + r2) (g1 + g2) (b1 + b2)
 
 -- get the red component of a pixel
 red :: Pixel -> Double
@@ -60,18 +57,14 @@ blue (Pixel _ _ b) = b
 
 -- THIS ONE
 picMap :: (a -> a) -> [[a]] -> [[a]]
-picMap = fmap * fmap
-
+picMap f = map (map f)
 
 -- group a list into groups of size n.
 -- example group 2 [123456]
 -- [[12][34][56]
 group :: Int -> [a] -> [[a]]
-group :: Int -> [a] -> [[a]]
-group n = unfoldr split
-  where
-    split [] = Nothing
-    split xs = Just (take n xs, drop n xs)
+group _ [] = []
+group n xs = take n xs : group n (drop n xs)
 
 -- returns the height of an image
 height :: [[a]] -> Int
@@ -80,54 +73,67 @@ height = length
 -- returns the width of an image
 -- If an image has no rows then it should have a width of 0
 width :: [[a]] -> Int
-width [] = 0
-width (x:_) = length x
+width image
+    | null image  = 0
+    | otherwise   = length (head image)
 
 -- creates an NxM matrix of black pixels
 -- N rows
 -- M columns
 blackBox :: Int -> Int -> [[Pixel]]
-blackBox n m = replicate n (replicate m black) -- (R G B) values
+blackBox rows cols = replicate rows (replicate cols blackPixel)
+    where
+        blackPixel = black
 
 -- adds n rows of black pixels to the top of the image
 padTop :: Int -> Picture -> Picture
-padTop n img = replicate n (replicate (width img) black) ++ img
+padTop n image = blackRows ++ image
+    where
+        blackRows = replicate n (replicate (width image) blackPixel)
+        blackPixel = Pixel 0 0 0
 
 -- adds n rows of black pixels to the bottom of the image
 padBottom :: Int -> Picture -> Picture
-padBottom n img = img ++ replicate n (replicate (width img) black)
+padBottom n image = image ++ blackRows
+    where
+        blackRows = replicate n (replicate (width image) blackPixel)
+        blackPixel = Pixel 0 0 0
 
 -- adds n rows of black pixels to the left of the image
 padLeft :: Int -> Picture -> Picture
-padLeft n img = map (\row -> replicate n black ++ row) img
+padLeft n = map (replicate n blackPixel ++)
+    where
+        blackPixel = Pixel 0 0 0
 
 -- adds n rows of black pixels to the right of the image
 padRight :: Int -> Picture -> Picture
-padRight n img = map (\row -> row ++ replicate n black) img
+padRight n = map (++ replicate n blackPixel)
+    where
+        blackPixel = Pixel 0 0 0
 
 -- pad an immage to the left and the right with n columns of black pixels.
 padH :: Int -> Picture -> Picture
-padH n img = padLeft n (padRight n img)
+padH n image = padRight n (padLeft n image)
 
 -- pad an immage above and below with n rows of black pixels
 padV :: Int -> Picture -> Picture
-padV n img = padTop n (padBottom n img)
+padV n image = padBottom n (padTop n image)
 
 -- cell shades an image
 cellShade :: Picture -> Picture
-cellShade = picMap shadePixel
+cellShade = map (map toCellShade)
   where
-    shadePixel = pixelMap shade
-    shade x = bool 0 1 (x > 0.5)
+    toCellShade :: Pixel -> Pixel
+    toCellShade (Pixel r g b) = let
+      cellShadeValue x = fromIntegral (round (x * 3)) / 3
+      in Pixel (cellShadeValue r) (cellShadeValue g) (cellShadeValue b)
+
 
 -- converts an image to gray scale.
 grayScale :: Picture -> Picture
-grayScale :: Picture -> Picture
-grayScale = picMap grayPixel
+grayScale = map (map grayPixel)
   where
-    grayPixel pixel = let avg = pixelAvg pixel in Pixel avg avg avg
-    pixelAvg (Pixel r g b) = (r + g + b) / 3
-
+    grayPixel (Pixel r g b) = let avg = (r + g + b) / 3 in Pixel avg avg avg
 
 
 --------------------------------------------------------------------------
