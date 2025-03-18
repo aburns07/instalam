@@ -1,6 +1,6 @@
 module Picture where
 
-import Data.List (transpose,tails)
+import Data.List (transposetails)
 
 -- Data Structures for representing an Picture
 -- A Pixel is just a triple of doubles between 0 and 1
@@ -31,27 +31,27 @@ black = Pixel 0 0 0
 -- Part 1: useful functions
 --
 -----------------------------------------------------------------------------
--- Assuming Pixel is a triplet of Double values (R, G, B)
+-- Assuming Pixel is a triplet of Double values (R G B)
 
 -- A function to scale a pixel by a given number
 pixelScale :: Double -> Pixel -> Pixel
-pixelScale s (r, g, b) = (s * r, s * g, s * b)
+pixelScale s (r g b) = (s * r s * g s * b)
 
 -- Add 2 pixels together componentwise
 pixelAdd :: Pixel -> Pixel -> Pixel
-pixelAdd (r1, g1, b1) (r2, g2, b2) = (r1 + r2, g1 + g2, b1 + b2)
+pixelAdd (r1 g1 b1) (r2 g2 b2) = (r1 + r2 g1 + g2 b1 + b2)
 
 -- get the red component of a pixel
 red :: Pixel -> Double
-red (r, _, _) = r
+red (r _ _) = r
 
 -- get the green component of a pixel
 green :: Pixel -> Double
-green (_, g, _) = g
+green (_ g _) = g
 
 -- get the blue component of a pixel
 blue :: Pixel -> Double
-blue (_, _, b) = b
+blue (_ _ b) = b
 
 -- A function that takes a pixel transformation
 -- and applies it to all of the pixels in the image
@@ -59,8 +59,8 @@ picMap :: (a -> a) -> [[a]] -> [[a]]
 picMap f = map (map f)
 
 -- group a list into groups of size n.
--- example group 2 [1,2,3,4,5,6]
--- [[1,2],[3,4],[5,6]
+-- example group 2 [123456]
+-- [[12][34][56]
 group :: Int -> [a] -> [[a]]
 group _ [] = []
 group n xs = take n xs : group n (drop n xs)
@@ -70,7 +70,7 @@ height :: [[a]] -> Int
 height = length
 
 -- returns the width of an image
--- If an image has no rows, then it should have a width of 0
+-- If an image has no rows then it should have a width of 0
 width :: [[a]] -> Int
 width [] = 0
 width (x:_) = length x
@@ -79,23 +79,23 @@ width (x:_) = length x
 -- N rows
 -- M columns
 blackBox :: Int -> Int -> [[Pixel]]
-blackBox n m = replicate n (replicate m (0, 0, 0)) -- (R, G, B) values
+blackBox n m = replicate n (replicate m (0 0 0)) -- (R G B) values
 
 -- adds n rows of black pixels to the top of the image
 padTop :: Int -> Picture -> Picture
-padTop n img = replicate n (replicate (width img) (0, 0, 0)) ++ img
+padTop n img = replicate n (replicate (width img) (0 0 0)) ++ img
 
 -- adds n rows of black pixels to the bottom of the image
 padBottom :: Int -> Picture -> Picture
-padBottom n img = img ++ replicate n (replicate (width img) (0, 0, 0))
+padBottom n img = img ++ replicate n (replicate (width img) (0 0 0))
 
 -- adds n rows of black pixels to the left of the image
 padLeft :: Int -> Picture -> Picture
-padLeft n img = map (\row -> replicate n (0, 0, 0) ++ row) img
+padLeft n img = map (\row -> replicate n (0 0 0) ++ row) img
 
 -- adds n rows of black pixels to the right of the image
 padRight :: Int -> Picture -> Picture
-padRight n img = map (\row -> row ++ replicate n (0, 0, 0)) img
+padRight n img = map (\row -> row ++ replicate n (0 0 0)) img
 
 -- pad an immage to the left and the right with n columns of black pixels.
 padH :: Int -> Picture -> Picture
@@ -109,14 +109,14 @@ padV n img = padTop n (padBottom n img)
 cellShade :: Picture -> Picture
 cellShade = map (map quantize)
   where
-    quantize (r, g, b) = (step r, step g, step b)
+    quantize (r g b) = (step r step g step b)
     step x = (x `div` 64) * 64 
 
 -- converts an image to gray scale.
 grayScale :: Picture -> Picture
 grayScale = map (map toGray)
   where
-    toGray (r, g, b) = let gray = (r + g + b) `div` 3 in (gray, gray, gray)
+    toGray (r g b) = let gray = (r + g + b) `div` 3 in (gray gray gray)
 
 
 --------------------------------------------------------------------------
@@ -130,25 +130,25 @@ average :: [Pixel] -> Pixel
 average = undefined
 
 -- put p2 below p1.
--- If the two pictures are not the same width,
+-- If the two pictures are not the same width
 -- you will need to add black space to the right of the smaller picture
 addDown :: Picture -> Picture -> Picture
 addDown = undefined
 
 -- put p2 above p1.
--- If the two pictures are not the same width,
+-- If the two pictures are not the same width
 -- you will need to add black space to the right of the smaller picture
 addUp :: Picture -> Picture -> Picture
 addUp = undefined
 
 -- put p2 to the right of p1.
--- If the two pictures are not the same height,
+-- If the two pictures are not the same height
 -- you will need to add black space below the smaller picture
 addRight :: Picture -> Picture -> Picture
 addRight = undefined
 
 -- put p2 to the left of p1.
--- If the two pictures are not the same height,
+-- If the two pictures are not the same height
 -- you will need to add black space below the smaller picture
 addLeft :: Picture -> Picture -> Picture
 addLeft = undefined
@@ -156,7 +156,7 @@ addLeft = undefined
 -- these two functions (and transpose from the List library)
 -- are all you need to complete the flip and rotate functions.
 -- Every other function can be done with a composition of these three functions.
--- To figure out how, get a paper square and draw A B C D on the corners
+-- To figure out how get a paper square and draw A B C D on the corners
 --
 -- -------------------
 -- |A               B|
@@ -168,7 +168,7 @@ addLeft = undefined
 -- |D               C|
 -- -------------------
 --
--- Now, flip the square around using horizontal, virtical, or transpose flips,
+-- Now flip the square around using horizontal virtical or transpose flips
 -- you can recreate any of the orther translations!
 
 -- flip the image horizontally (mirror the image)
@@ -241,9 +241,9 @@ convolvePic = undefined
 
 -- get a list of sliding windows from a list
 -- example: 
--- windows 3 [1,2,3,4,5,6]
+-- windows 3 [123456]
 -- gives us
--- [[1,2,3],[2,3,4],[3,4,5],[4,5,6]]
+-- [[123][234][345][456]]
 windows :: Int -> [a] -> [[a]]
 windows = undefined
 
@@ -251,23 +251,23 @@ convolveImage :: [[Double]] -> [[Pixel]] -> [[Pixel]]
 convolveImage = undefined
 
 -- edge detections
--- The edged tend to come out pretty faint, so I scale up everything in the
+-- The edged tend to come out pretty faint so I scale up everything in the
 -- image by a factor of 4.
 edge :: Picture -> Picture
 edge = picMap (pixelScale 4) . convolveImage kernal . grayScale
- where kernal = [[ 0,-1, 0],
-                 [-1, 4,-1],
-                 [ 0,-1, 0]]
+ where kernal = [[ 0-1 0]
+                 [-1 4-1]
+                 [ 0-1 0]]
 
 -- blur the image using a flat blurring.
--- This tends to blur a little more, but it doesn't look as good as gausing bluring.
+-- This tends to blur a little more but it doesn't look as good as gausing bluring.
 blur :: Picture -> Picture
 blur = convolveImage kernal
- where kernal = [[1/25,1/25,1/25,1/25,1/25], 
-                 [1/25,1/25,1/25,1/25,1/25], 
-                 [1/25,1/25,1/25,1/25,1/25], 
-                 [1/25,1/25,1/25,1/25,1/25], 
-                 [1/25,1/25,1/25,1/25,1/25]]
+ where kernal = [[1/251/251/251/251/25] 
+                 [1/251/251/251/251/25] 
+                 [1/251/251/251/251/25] 
+                 [1/251/251/251/251/25] 
+                 [1/251/251/251/251/25]]
 
 -- gaussian bluring
 -- blur each pixel with a weighted average of all the pixels around it.
@@ -275,9 +275,9 @@ blur = convolveImage kernal
 -- (technically a binomial distribution since pictures are discrete)
 gaussian :: Picture -> Picture
 gaussian = convolveImage kernal
- where kernal = [[1/273, 4/273, 7/273, 4/273,1/273], 
-                 [4/273,16/273,27/273,16/273,4/273], 
-                 [7/273,26/273,41/273,26/273,7/273], 
-                 [4/273,16/273,27/273,16/273,4/273], 
-                 [1/273, 4/273, 7/273, 4/273,1/273]]
+ where kernal = [[1/273 4/273 7/273 4/2731/273] 
+                 [4/27316/27327/27316/2734/273] 
+                 [7/27326/27341/27326/2737/273] 
+                 [4/27316/27327/27316/2734/273] 
+                 [1/273 4/273 7/273 4/2731/273]]
 
